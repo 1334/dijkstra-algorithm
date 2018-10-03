@@ -4,39 +4,42 @@ const graph = {
   a: {
     value: 'a',
     edges: { b: 10, c: 20 },
-    minWeight: Infinity
+    minWeight: null
   },
   b: {
     value: 'b',
     edges: { d: 50, e: 10 },
-    minWeight: Infinity
+    minWeight: null
   },
   c: {
     value: 'c',
     edges: { d: 20, e: 33 },
-    minWeight: Infinity
+    minWeight: null
   },
   d: {
     value: 'd',
     edges: { e: 20, f: 2 },
-    minWeight: Infinity
+    minWeight: null
   },
   e: {
     value: 'e',
     edges: { f: 1 },
-    minWeight: Infinity
+    minWeight: null
   },
   f: {
     value: 'f',
     edges: {},
-    minWeight: Infinity
+    minWeight: null
   }
 }
 
 function dijkstra(graph, root) {
+  const newGraph = JSON.parse(JSON.stringify(graph));
+  root = newGraph[root];
   const queue = new Queue();
   const result = {
-    weigths: []
+    weigths: [],
+    paths: {}
   };
   let currentNode;
 
@@ -46,21 +49,33 @@ function dijkstra(graph, root) {
 
   while(currentNode) {
     for (let key in currentNode.edges) {
-      if (currentNode.edges[key] + currentNode.minWeight <= graph[key].minWeight) {
-        graph[key].minWeight = currentNode.edges[key] + currentNode.minWeight;
-        graph[key].previous = currentNode;
+      if (!newGraph[key].minWeight || currentNode.edges[key] + currentNode.minWeight <= newGraph[key].minWeight) {
+        newGraph[key].minWeight = currentNode.edges[key] + currentNode.minWeight;
+        newGraph[key].previous = currentNode;
       }
-      queue.insert(graph[key]);
+      queue.insert(newGraph[key]);
     }
     currentNode = queue.next();
   }
 
-  for (let node in graph) {
-    result.weigths.push(graph[node].minWeight);
+  for (let node in newGraph) {
+    result.weigths.push(newGraph[node].minWeight);
+
+    result.paths[node] = generatePath(newGraph[node]);
   }
-  // console.log(graph);
+  console.log(result.paths);
 
   return result.weigths;
+
+  function generatePath (node) {
+    const path = [];
+    while(node.previous) {
+      path.unshift(node.value);
+      node = node.previous;
+    }
+    path.unshift(node.value);
+    return path;
+  }
 }
 
 function Queue() {
@@ -81,7 +96,7 @@ Queue.prototype.isEmpty = function () {
   return !this.storage.length;
 };
 
-console.log(dijkstra('weights', graph, graph.a));
+console.log('weights', dijkstra(graph, 'a'));
 // console.assert(dijkstra(graph, graph.a), [0, 10, 20, 40, 20, 21]);
 
 // const queue = new Queue();
